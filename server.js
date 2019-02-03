@@ -20,6 +20,7 @@ var messages = [];
 io.on('connection', socket => {
 	
 	socket.emit('previousMessages', messages);
+
 	socket.on('newUser', data => {
 		users.push(data);
 		socket.username = data;
@@ -27,16 +28,12 @@ io.on('connection', socket => {
 		socket.emit('connectedUsers', users);
 	});
 	socket.on('sendMessage', data => {
+		messages.push(data);
 		socket.broadcast.emit('receivedMessage', data);
 	});
 	socket.on('disconnect', function(){
 		users.splice(users.indexOf(socket.username), 1);
 		socket.broadcast.emit('connectedUsers', users);
-		if(socket.username!=undefined){
-			messages.push({author: '', message: '<strong>'+socket.username+ ' has left the chat.</strong>'});
-			socket.broadcast.emit('previousMessages', messages);
-			socket.username = undefined;
-		}
 	})
 
 });
