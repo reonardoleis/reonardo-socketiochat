@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chat</title>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div class="online-users" style="display: none;">
+		<h3>Online users</h3>
+		<hr>
+		<div id="users"></div>
+	</div>
+	<form id="login" method="post">
+		<input type="text" name="username" placeholder="Digite seu usuário">
+		<input type="submit">
+	</form>
+	<form id="chat" style="display: none;">
+		<div class="messages"></div>
+		<input type="text" name="message" placeholder="Digite sua mensagem">
+		<button type="submit">Enviar</button>
+	</form>
+
+	<script type="text/javascript">
+		var socket = io('http://localhost:3000');
+		$login = $('#login');
+		$chat = $('#chat');
+		$online = $('.online-users');
+
+		function renderMessage(message){
+			$('.messages').append('<div class="message"><strong>'+message.author+'</strong>'+message.message+'</div>')
+		}
+
+		socket.on('receivedMessage', function(message){
+			renderMessage(message);
+		});
+
+		socket.on('previousMessages', function(messages){
+			$('.messages').html('');
+			for(message of messages) {
+				renderMessage(message);
+			}
+		});
+
+		socket.on('addUser', function(users){
+			$online.html('');
+			$online.append('<h3>Online users:</h3><hr>');
+			for(user of users){
+				$online.append('<label>'+user+'</label><hr>');
+			}
+		})
+
+		socket.on('connectedUsers', function(users){
+			$online.html('');
+			$online.append('<h3>Online users:</h3><hr>');
+			for(user of users){
+				$online.append('<label>'+user+'</label><hr>');
+			}
+			console.log(users);
+		});		
+
+		$('#login').submit(function(event){
+			event.preventDefault();
+			$login.hide();
+			$chat.show();
+			$online.show();
+			socket.emit('newUser', $('input[name=username]').val());
+		});
+
+		$('#chat').submit(function(event){
+			event.preventDefault();
+			var author = $('input[name=username]').val().replace(/\</g, '&lt');;
+			var message = $('input[name=message]').val().replace(/\</g, '&lt');
+			console.log(message);
+
+			if(author.length && message.length){
+				var messageObject = {
+					author: author,
+					message: ': '+message
+				};
+			}
+			renderMessage(messageObject);
+			socket.emit('sendMessage', messageObject);
+
+		});
+	</script>
+</body>
+</html>
