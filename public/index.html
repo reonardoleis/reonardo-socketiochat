@@ -23,7 +23,7 @@
 	</form>
 
 	<script type="text/javascript">
-		var socket = io('http://localhost:3000');
+		var socket = io();
 		$login = $('#login');
 		$chat = $('#chat');
 		$online = $('.online-users');
@@ -36,9 +36,9 @@
 			renderMessage(message);
 		});
 
-		socket.on('previousMessages', function(messages){
-			$('.messages').html('');
-			for(message of messages) {
+		socket.on('previousMessages', function(data){
+
+			for(message of data) {
 				renderMessage(message);
 			}
 		});
@@ -72,7 +72,6 @@
 			event.preventDefault();
 			var author = $('input[name=username]').val().replace(/\</g, '&lt');;
 			var message = $('input[name=message]').val().replace(/\</g, '&lt');
-			console.log(message);
 
 			if(author.length && message.length){
 				var messageObject = {
